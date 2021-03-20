@@ -34,12 +34,8 @@ router.post('/postdatos', async (req, res) => {
 // * METODO QUE DEVUELVE LOS DATOS 
 router.get('/getdatos', async (req, res) => {
     try{
-        const findresult = await db.collection('Personas').find().toArray(function(err, result){
-            if (err) throw err
-            console.log(result)
-        });
-
-        res.json("correcto")
+        const resultado = await db.collection('Personas').find().toArray();
+        await res.send(resultado)
     }catch(error){
         res.status(500).json({'message' : 'failed'})
     }
