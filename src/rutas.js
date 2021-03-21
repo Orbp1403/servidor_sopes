@@ -199,4 +199,35 @@ router.get('/top5departamentos', async (req, res) => {
         res.status(500).json({'message' : 'failed'})
     }
 })
+
+// * METODO QUE DEVUELVE EL PORCENTAJE DE CASOS POR STATE
+router.get('/getcasosporstate', async (req, res) => {
+    try{
+        const field = "state"
+        const query = {}
+        // * SE OBTIENEN LOS STATE DIFERENTES
+        const states = await db.collection('Personas').distinct(field, query)
+        var aux_states = []
+        var total_casos = 0
+        for(let i = 0; i < states.length; i++){
+            const state = await db.collection('Personas').find({state : states[i]}).toArray()
+            var objeto_state = new Object();
+            total_casos += state.length;
+            objeto_state.numero = state.length;
+            objeto_state.state = states[i]
+            aux_states.push(objeto_state)
+        }
+        var resultado = []
+        for(let i = 0; i < aux_states.length; i++){
+            var porcentaje = (aux_states[i].numero*100)/total_casos
+            var objeto_state = new Object()
+            objeto_state.state = aux_states[i].state
+            objeto_state.porcentaje = porcentaje
+            resultado.push(objeto_state)
+        }
+        res.send(resultado)
+    }catch(err){
+        res.status(500).json({'message' : 'failed'})
+    }
+})
 module.exports = router
