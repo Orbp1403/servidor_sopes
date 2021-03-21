@@ -34,8 +34,19 @@ router.post('/postdatos', async (req, res) => {
 // * METODO QUE DEVUELVE LOS DATOS 
 router.get('/getdatos', async (req, res) => {
     try{
-        const resultado = await db.collection('Personas').find().toArray();
+        const resultado = await db.collection('Personas').find({}, {"_id" : 0}).toArray();
         await res.send(resultado)
+    }catch(error){
+        res.status(500).json({'message' : 'failed'})
+    }
+})
+
+// * METODO QUE DEVUELVE LOS DATOS GUARDADOS DESDE LOS SERVIDORES
+router.get('/getdatos/:server', async (req, res) => {
+    try{
+        const resultado = await db.collection('Personas').find({way : req.params.server}).toArray();
+        console.log(resultado)
+        res.send("correcto")
     }catch(error){
         res.status(500).json({'message' : 'failed'})
     }
