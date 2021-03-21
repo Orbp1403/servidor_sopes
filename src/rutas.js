@@ -230,4 +230,67 @@ router.get('/getcasosporstate', async (req, res) => {
         res.status(500).json({'message' : 'failed'})
     }
 })
+
+// * METODO QUE DEVUELVE EL PORCENTAJE DE CASOS POR INFECTEDTYPE
+router.get('/getcasosporinfectedtype', async (req, res) => {
+    try{
+        const field = "infectedtype"
+        const query = {}
+        // * SE OBTIENEN LOS STATE DIFERENTES
+        const states = await db.collection('Personas').distinct(field, query)
+        var aux_states = []
+        var total_casos = 0
+        for(let i = 0; i < states.length; i++){
+            const state = await db.collection('Personas').find({infectedtype : states[i]}).toArray()
+            var objeto_state = new Object();
+            total_casos += state.length;
+            objeto_state.numero = state.length;
+            objeto_state.state = states[i]
+            aux_states.push(objeto_state)
+        }
+        var resultado = []
+        for(let i = 0; i < aux_states.length; i++){
+            var porcentaje = (aux_states[i].numero*100)/total_casos
+            var objeto_state = new Object()
+            objeto_state.state = aux_states[i].state
+            objeto_state.porcentaje = porcentaje
+            resultado.push(objeto_state)
+        }
+        res.send(resultado)
+    }catch(err){
+        res.status(500).json({'message' : 'failed'})
+    }
+})
+
+// * METODO QUE DEVUELVE EL NUMERO DE INFECTADOS POR RANGO DE EDADES
+router.get('/getrangosporedad', async (req, res) => {
+    try{
+        let rango = 0;
+        var rangos_edades = []
+        while(rango <= 99){
+            var rango1 = {
+                edad_minima : rango,
+                edad_maxima : rango + 9,
+                numero : 0
+            }
+            rangos_edades.push(rango1)
+            rango += 10
+        }
+
+        var edades = await db.collection('Personas').find({}).project({"age" : 1, "_id" : 0}).toArray()
+        for(let i = 0; i < edades.length; i++){
+            for(let j = 0; j < rangos_edades.length; j++){
+                var rango1 = rangos_edades[j]
+                if(edades[i].age >= rango1.edad_minima && edades[i].age <= rango1.edad_maxima){
+                    rango1.numero += 1;
+                    break;
+                }
+            }
+        }
+        res.send(rangos_edades)
+    }catch(err){
+        res.status(500).json({'message' : 'failed'})
+    }
+})
+
 module.exports = router
