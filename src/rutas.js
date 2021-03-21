@@ -8,6 +8,40 @@ clientemongo.connect(uri, (err, cliente) => {
     db = cliente.db('proyecto1sopes1');
 })
 
+var regiones = [];
+        for(var i = 0; i < 8; i++){
+            var region = {
+                nombre_region : "",
+                cantidad_region : 0,
+                departamentos : []
+            }
+            if(i == 0){
+                region.nombre_region = "Region VI o Suroccidente"
+                regiones.push(region)
+            }else if(i == 1){
+                region.nombre_region = "Region I o Metropolitana"
+                regiones.push(region)
+            }else if(i == 2){
+                region.nombre_region = "Region VII o Noroccidente"
+                regiones.push(region)
+            }else if(i == 3){
+                region.nombre_region = "Region V o Central"
+                regiones.push(region)
+            }else if(i == 4){
+                region.nombre_region = "Region II o Verapaz"
+                regiones.push(region)
+            }else if(i == 5){
+                region.nombre_region = "Region III o Nororiente"
+                regiones.push(region)
+            }else if(i == 6){
+                region.nombre_region = "Region IV o Suroriente"
+                regiones.push(region)
+            }else{
+                region.nombre_region = "Region VIII o Peten"
+                regiones.push(region)
+            }
+        }
+
 const router = require('express').Router()
 
 // * METODO DE PRUEBA
@@ -58,24 +92,85 @@ router.get('/regionmasinfectada', async (req, res) =>{
         //const regiones = await db.collection('Personas').find({}).project({'state':1, '_id':0}).toArray()
         const fieldname = "location"
         const query = {}
-        const regiones = await db.collection('Personas').distinct(fieldname, query);   
-        console.log(regiones)
-        var valor_ret = { 
-            region : '',
-            numero : 0
+        // * SE OBTIENEN TODOS LOS DEPARTAMENTOS DE LA BASE DE DATOS SIN REPETIRSE
+        const departamentos = await db.collection('Personas').distinct(fieldname, query);   
+        console.log(departamentos)
+        var aux_departamentos = [];
+        // * SE RECORREN LOS DEPARTAMENTOS OBTENIDOS PARA VER CUANTAS VECES SE REPITE CADA UNO 
+        for(var i = 0; i < departamentos.length; i++){
+            const departamento = await db.collection('Personas').find({location: departamentos[i]}).toArray()
+            var objeto_departamento = new Object()
+            objeto_departamento.depart = departamentos[i]
+            objeto_departamento.numero = departamento.length
+            aux_departamentos.push(objeto_departamento)
         }
-        console.log(valor_ret.numero)
-        for(var i = 0; i < regiones.length; i++){
-            console.log(regiones.length)
-            const region = await db.collection('Personas').find({state: regiones[i]}).toArray()
-            console.log(region.length)
-            if(valor_ret.numero > region.length){
-                valor_ret.numero = region.length
-                valor_ret.region = regiones[i]
+        
+        for(var i = 0; i < 8; i++){
+            var objeto_region = regiones[i]
+            objeto_region.cantidad_region = 0
+            objeto_region.departamentos = []
+        }
+
+        // * SE ASIGNAN LOS DEPARTAMENTOS A LAS DIFERENTES REGIONES
+        console.log(aux_departamentos)
+        for(var i = 0; i < aux_departamentos.length; i++){
+            var objeto_departamento = aux_departamentos[i];
+            if(objeto_departamento.depart == 'Quetzaltenango' || objeto_departamento.depart == 'Retalhuleu' || objeto_departamento.depart == 'San Marcos' || objeto_departamento.depart == 'Suchitepequez' || objeto_departamento.depart == 'Sololá' || objeto_departamento.depart == 'Totonicapán'){
+                var auxregion = regiones[0]
+                auxregion.cantidad_region += objeto_departamento.numero
+                auxregion.departamentos.push(objeto_departamento)
+      //          console.log(regiones[0])
+            }else if(objeto_departamento.depart == 'Guatemala'){
+                var auxregion = regiones[1]
+                auxregion.cantidad_region += objeto_departamento.numero
+                auxregion.departamentos.push(objeto_departamento)
+    //            console.log(regiones[1])
+            }else if(objeto_departamento.depart == 'Huehuetenango' || objeto_departamento.depart == 'Quiché'){
+                var auxregion = regiones[2]
+                auxregion.cantidad_region += objeto_departamento.numero
+                auxregion.departamentos.push(objeto_departamento)
+  //              console.log(regiones[2])
+            }else if(objeto_departamento.depart == 'Chimaltenango' || objeto_departamento.depart == 'Sacatepequez'){
+                var auxregion = regiones[3]
+                auxregion.cantidad_region += objeto_departamento.numero
+                auxregion.departamentos.push(objeto_departamento)
+//                console.log(regiones[3])
+            }else if(objeto_departamento.depart == 'Alta Verapaz' || objeto_departamento.depart == 'Baja Verapaz'){
+                var auxregion = regiones[4]
+                auxregion.cantidad_region += objeto_departamento.numero
+                auxregion.departamentos.push(objeto_departamento)
+               // console.log(regiones[4])
+            }else if(objeto_departamento.depart == 'Chiquimula' || objeto_departamento.depart == 'El Progreso' || objeto_departamento.depart == 'Izabal' || objeto_departamento.depart == 'Zacapa'){
+                var auxregion = regiones[5]
+                auxregion.cantidad_region += objeto_departamento.numero
+                auxregion.departamentos.push(objeto_departamento)
+             //   console.log(regiones[5])
+            }else if(objeto_departamento.depart == 'Jutiapa' || objeto_departamento.depart == 'Jalapa' || objeto_departamento.depart == 'Santa Rosa'){
+                var auxregion = regiones[6]
+                auxregion.cantidad_region += objeto_departamento.numero
+                auxregion.departamentos.push(objeto_departamento)
+           //     console.log(regiones[6])
+            }else if(objeto_departamento.depart == 'Petén'){
+                var auxregion = regiones[7]
+                auxregion.cantidad_region += objeto_departamento.numero
+                auxregion.departamentos.push(objeto_departamento)
+         //       console.log(regiones[7])
             }
-            console.log(valor_ret)
         }
-        res.send("correcto")
+        var regionmasinfectados = {
+            nombre_region : "",
+            cantidad_region : 0,
+            departamentos : []
+        }
+        for(let i = 0; i < 8; i++){
+            if(regionmasinfectados.cantidad_region < regiones[i].cantidad_region){
+                regionmasinfectados.nombre_region = regiones[i].nombre_region
+                regionmasinfectados.cantidad_region = regiones[i].cantidad_region
+                regionmasinfectados.departamentos = regiones[i].departamentos
+            }
+        }
+        console.log(regiones)
+        res.send(regionmasinfectados)
     }catch(err){
         res.status(500).json({'message' : 'failed'})
     }
